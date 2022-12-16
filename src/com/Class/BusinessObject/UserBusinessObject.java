@@ -13,7 +13,7 @@ public class UserBusinessObject {
 		return userDataAccessObject.create(user);
 	}
 	
-	public boolean update(User user) {
+	public int update(User user) {
 		return userDataAccessObject.update(user);
 	}
 	

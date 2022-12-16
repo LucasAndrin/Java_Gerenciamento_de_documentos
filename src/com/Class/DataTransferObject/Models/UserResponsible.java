@@ -45,4 +45,14 @@ public class UserResponsible extends UserRecipient {
 		this.sentDocuments = sentDocuments;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("UserResponsible [sentDocuments=");
+		builder.append(sentDocuments);
+		builder.append(super.toString());
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

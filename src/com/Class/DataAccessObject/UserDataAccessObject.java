@@ -10,6 +10,9 @@ import java.util.List;
 
 import com.Class.DataTransferObject.Enums.UserType;
 import com.Class.DataTransferObject.Models.User;
+import com.Class.DataTransferObject.Models.UserAdmin;
+import com.Class.DataTransferObject.Models.UserRecipient;
+import com.Class.DataTransferObject.Models.UserResponsible;
 import com.UtilClass.Connection.Conexao;
 
 public class UserDataAccessObject extends DataAccessObject {
@@ -62,7 +65,7 @@ public class UserDataAccessObject extends DataAccessObject {
 		}
     }
 	
-	public boolean update(User user) {
+	public int update(User user) {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
@@ -75,7 +78,12 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(getTable());
             strBuilder.append(" SET name = ?, email = ?, type = ?, updated_at = now() WHERE ");
             strBuilder.append(primaryKey);
-            strBuilder.append("= ?");
+            strBuilder.append("= ? ");
+            if (!"".equals(deleteTimestamps)) {
+            	strBuilder.append(" AND ");
+            	strBuilder.append(deleteTimestamps);
+            	strBuilder.append(" IS NULL ");
+            }
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
             preparedStmt.setString(1, user.getName());
@@ -83,13 +91,15 @@ public class UserDataAccessObject extends DataAccessObject {
             preparedStmt.setInt(3, user.getType().getValue());
             preparedStmt.setLong(4, user.getId());
             
-            preparedStmt.executeUpdate();
+            int affectedRows = preparedStmt.executeUpdate();
+            
             preparedStmt.close();
             conn.close();
-            return true;
+            
+            return affectedRows;
 		} catch (Exception e) {
 	       	 e.printStackTrace();
-	         return false;
+	         return 0;
 	    }
 	}
 	
@@ -97,7 +107,6 @@ public class UserDataAccessObject extends DataAccessObject {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
-            
 			if ("".equals(deleteTimestamps)) {
 				strBuilder.append("DELETE FROM ");
 				strBuilder.append(getTable());
@@ -108,7 +117,6 @@ public class UserDataAccessObject extends DataAccessObject {
 				strBuilder.append(deleteTimestamps);
 				strBuilder.append(" = now()");
 			}
-            
             strBuilder.append(" WHERE ");
             strBuilder.append(primaryKey);
             strBuilder.append("= ?");
@@ -132,7 +140,12 @@ public class UserDataAccessObject extends DataAccessObject {
             StringBuilder strBuilder = new StringBuilder();
             strBuilder.append("SELECT * FROM ");
             strBuilder.append(getTable());
-
+            if (!"".equals(deleteTimestamps)) {
+            	strBuilder.append(" WHERE ");
+            	strBuilder.append(deleteTimestamps);
+            	strBuilder.append(" IS NULL ");
+            }
+            System.out.println(strBuilder.toString());
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
             ResultSet rs = preparedStmt.executeQuery();
             List<User> listObj = mountList(rs);
@@ -152,36 +165,44 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(" WHERE ");
             strBuilder.append(primaryKey);
             strBuilder.append(" = ?");
+            if (!"".equals(deleteTimestamps)) {
+            	strBuilder.append(" AND ");
+            	strBuilder.append(deleteTimestamps);
+            	strBuilder.append(" IS NULL ");
+            }
             
             PreparedStatement ps = conn.prepareStatement(strBuilder.toString());
             ps.setLong(1, user.getId());
             ResultSet rs = ps.executeQuery();
-
+            
             if (rs.next()) {
-            	User obj = new User();
+            	User obj;
+            	int userType = rs.getInt(4);
+            	if (UserType.RECIPIENT.getValue() == userType) {
+            		obj = new UserRecipient();
+            	} else if (UserType.ADMIN.getValue() == userType) {
+            		obj = new UserAdmin();
+            	} else if (UserType.RESPONSIBLE.getValue() == userType) {
+            		obj = new UserResponsible();
+            	} else {
+            		obj = new UserAdmin();
+            	}
+            	
                 obj.setId(rs.getInt(1));
                 obj.setName(rs.getString(2));
                 obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));
+                
                 rs.close();
                 ps.close();
                 conn.close();
-                
                 return obj;
             } else {
                 rs.close();
                 ps.close();
                 conn.close();
-                
                 return null;
             }
         } catch (Exception e) {
@@ -194,17 +215,21 @@ public class UserDataAccessObject extends DataAccessObject {
 		List<User> listObj = new ArrayList<User>();
         try {
             while (rs.next()) {
-                User obj = new User();
+            	User obj;
+            	int userType = rs.getInt(4);
+            	if (UserType.RECIPIENT.getValue() == userType) {
+            		obj = new UserRecipient();
+            	} else if (UserType.ADMIN.getValue() == userType) {
+            		obj = new UserAdmin();
+            	} else if (UserType.RESPONSIBLE.getValue() == userType) {
+            		obj = new UserResponsible();
+            	} else {
+            		obj = new UserAdmin();
+            	}
+            	
                 obj.setId(rs.getInt(1));
                 obj.setName(rs.getString(2));
                 obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));

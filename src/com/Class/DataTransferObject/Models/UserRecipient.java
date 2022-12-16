@@ -50,6 +50,7 @@ public class UserRecipient extends User {
 		StringBuilder builder = new StringBuilder();
 		builder.append("UserRecipient [receivedDocuments=");
 		builder.append(receivedDocuments);
+		builder.append(super.toString());
 		builder.append("]");
 		return builder.toString();
 	}
