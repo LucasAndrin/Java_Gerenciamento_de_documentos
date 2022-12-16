@@ -31,7 +31,9 @@ public class MainCreateDocument {
 		
 		List<UserRecipient> recipients = new ArrayList<UserRecipient>(Arrays.asList(recipientsArray));
 		
-		boolean result = documentBO.create(doc, recipients);
+		doc.setRecipientUsers(recipients);
+		
+		boolean result = documentBO.create(doc);
 		
 		System.out.println(result);
 

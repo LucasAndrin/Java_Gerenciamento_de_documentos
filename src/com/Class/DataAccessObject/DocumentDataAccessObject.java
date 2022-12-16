@@ -62,6 +62,37 @@ public class DocumentDataAccessObject extends DataAccessObject {
             if (affectedRows == 0) {
                 throw new SQLException("Creating document failed, no rows affected.");
             }
+            
+            ResultSet generatedKeys = preparedStmt.getGeneratedKeys();
+            
+            if (generatedKeys.next()) {
+            	document.setId(generatedKeys.getLong(1));
+            } else {
+            	throw new SQLException("Creating document failed, no ID obtained.");
+            }
+            
+            strBuilder = new StringBuilder();
+	        strBuilder.append("INSERT INTO ");
+	        strBuilder.append(relashionship);
+	        strBuilder.append("(document_id, recipient_id)");
+	        strBuilder.append(" VALUES ");
+	        for (int count = 0; count < document.getRecipientUsers().size(); count++) {
+				strBuilder.append("(?, ?)");
+				if (count + 1 < document.getRecipientUsers().size()) {
+					strBuilder.append(", ");
+				}
+			}
+	        
+	        preparedStmt = conn.prepareStatement(strBuilder.toString());
+	        int count = 0;
+	        for (UserRecipient userRecipient : document.getRecipientUsers()) {
+	        	count++;
+	        	preparedStmt.setLong(count, document.getId());
+	        	count++;
+				preparedStmt.setLong(count, userRecipient.getId());
+			}
+	        
+	        preparedStmt.executeUpdate();
    
             preparedStmt.close();
             conn.close();
@@ -71,45 +102,6 @@ public class DocumentDataAccessObject extends DataAccessObject {
 			return false;
 		}
     }
-	
-	public boolean associate(Document document, List<UserRecipient> recipients) {
-		try {
-			Connection conn = Conexao.connect();
-	        StringBuilder strBuilder = new StringBuilder();
-			strBuilder = new StringBuilder();
-	        strBuilder.append("INSERT INTO ");
-	        strBuilder.append(relashionship);
-	        strBuilder.append("(document_id, recipient_id)");
-	        strBuilder.append(" VALUES ");
-	        for (int count = 0; count < recipients.size(); count++) {
-				strBuilder.append("(?, ?)");
-				if (count + 1 < recipients.size()) {
-					strBuilder.append(", ");
-				}
-			}
-	        
-	        PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-	        int count = 0;
-	        for (UserRecipient userRecipient : recipients) {
-	        	count++;
-	        	preparedStmt.setLong(count, document.getId());
-	        	count++;
-				preparedStmt.setLong(count, userRecipient.getId());
-			}
-	        
-	        System.out.println(preparedStmt);
-	        
-	        preparedStmt.executeUpdate();
-	        
-            preparedStmt.close();
-            conn.close();
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-		
-	}
 	
 	public boolean update(Document document) {
 		try {

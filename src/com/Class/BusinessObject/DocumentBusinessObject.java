@@ -4,18 +4,13 @@ import java.util.List;
 
 import com.Class.DataAccessObject.DocumentDataAccessObject;
 import com.Class.DataTransferObject.Models.Document;
-import com.Class.DataTransferObject.Models.UserRecipient;
 
 public class DocumentBusinessObject {
 	
 	private DocumentDataAccessObject documentDAO = new DocumentDataAccessObject();
 	
-	public boolean create(Document document, List<UserRecipient> recipients) {
-		documentDAO.create(document);
-		
-		document.setId(10);
-		
-		return documentDAO.associate(document, recipients);
+	public boolean create(Document document) {
+		return documentDAO.create(document);
 	}
 	
 	public boolean update(Document document) {
