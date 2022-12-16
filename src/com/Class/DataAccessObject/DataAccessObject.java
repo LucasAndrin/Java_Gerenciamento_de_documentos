@@ -2,7 +2,7 @@ package com.Class.DataAccessObject;
 
 import java.util.ArrayList;
 
-public class DataAcessObject {
+public class DataAccessObject {
 	
 	protected String primaryKey = "id";
 

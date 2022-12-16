@@ -3,23 +3,28 @@ package com.Class.DataAccessObject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.Class.DataTransferObject.Enums.UserType;
-import com.Class.DataTransferObject.Models.User;
+import com.Class.DataTransferObject.Models.Document;
+import com.Class.DataTransferObject.Models.DocumentTemplate;
+import com.Class.DataTransferObject.Models.UserRecipient;
+import com.Class.DataTransferObject.Models.UserResponsible;
 import com.UtilClass.Connection.Conexao;
 
-public class UserDataAccessObject extends DataAccessObject {
+public class DocumentDataAccessObject extends DataAccessObject {
 	
-    protected String table = "users";
+	protected String table = "documents";
+	
+	protected String relashionship = "documents_users";
     
     protected List<String> fillable = new ArrayList<String>(Arrays.asList(
-    		"name",
-    		"email",
-    		"type"
+    		"file",
+    		"template_id",
+    		"responsible_id"
 	));
     
     protected List<String> fillableTimestamps = new ArrayList<String>(Arrays.asList(
@@ -37,7 +42,7 @@ public class UserDataAccessObject extends DataAccessObject {
 		return fillable;
 	}
 
-	public boolean create(User user) {
+	public boolean create(Document document) {
     	try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -48,11 +53,16 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(" VALUES (?, ?, ?)");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setString(1, user.getName());
-            preparedStmt.setString(2, user.getEmail());
-            preparedStmt.setInt(3, user.getType().getValue());
+            preparedStmt.setString(1, document.getFile());
+            preparedStmt.setLong(2, document.getTemplateDocument().getId());
+            preparedStmt.setLong(3, document.getResponsibleUser().getId());
             
-            preparedStmt.executeUpdate();
+            int affectedRows = preparedStmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating document failed, no rows affected.");
+            }
+   
             preparedStmt.close();
             conn.close();
 			return true;
@@ -62,26 +72,65 @@ public class UserDataAccessObject extends DataAccessObject {
 		}
     }
 	
-	public boolean update(User user) {
+	public boolean associate(Document document, List<UserRecipient> recipients) {
+		try {
+			Connection conn = Conexao.connect();
+	        StringBuilder strBuilder = new StringBuilder();
+			strBuilder = new StringBuilder();
+	        strBuilder.append("INSERT INTO ");
+	        strBuilder.append(relashionship);
+	        strBuilder.append("(document_id, recipient_id)");
+	        strBuilder.append(" VALUES ");
+	        for (int count = 0; count < recipients.size(); count++) {
+				strBuilder.append("(?, ?)");
+				if (count + 1 < recipients.size()) {
+					strBuilder.append(", ");
+				}
+			}
+	        
+	        PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
+	        int count = 0;
+	        for (UserRecipient userRecipient : recipients) {
+	        	count++;
+	        	preparedStmt.setLong(count, document.getId());
+	        	count++;
+				preparedStmt.setLong(count, userRecipient.getId());
+			}
+	        
+	        System.out.println(preparedStmt);
+	        
+	        preparedStmt.executeUpdate();
+	        
+            preparedStmt.close();
+            conn.close();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+	}
+	
+	public boolean update(Document document) {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
 			
 			Timestamp now = new Timestamp(System.currentTimeMillis());
 			
-			user.setUpdatedAt(now);
+			document.setUpdatedAt(now);
 			
             strBuilder.append("UPDATE ");
             strBuilder.append(getTable());
-            strBuilder.append(" SET name = ?, email = ?, type = ?, updated_at = now() WHERE ");
+            strBuilder.append(" SET file = ?, template_id = ?, responsible_id = ?, updated_at = now() WHERE ");
             strBuilder.append(primaryKey);
             strBuilder.append("= ?");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setString(1, user.getName());
-            preparedStmt.setString(2, user.getEmail());
-            preparedStmt.setInt(3, user.getType().getValue());
-            preparedStmt.setLong(4, user.getId());
+            preparedStmt.setString(1, document.getFile());
+            preparedStmt.setLong(2, document.getTemplateDocument().getId());
+            preparedStmt.setLong(3, document.getResponsibleUser().getId());
+            preparedStmt.setLong(4, document.getId());
             
             preparedStmt.executeUpdate();
             preparedStmt.close();
@@ -93,7 +142,7 @@ public class UserDataAccessObject extends DataAccessObject {
 	    }
 	}
 	
-	public boolean delete(User user) {
+	public boolean delete(Document document) {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
@@ -114,7 +163,7 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append("= ?");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setLong(1, user.getId());
+            preparedStmt.setLong(1, document.getId());
             
             preparedStmt.executeUpdate();
             preparedStmt.close();
@@ -126,7 +175,7 @@ public class UserDataAccessObject extends DataAccessObject {
 	    }
 	}
 	
-	public List<User> get() {
+	public List<Document> get() {
         try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -135,7 +184,7 @@ public class UserDataAccessObject extends DataAccessObject {
 
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
             ResultSet rs = preparedStmt.executeQuery();
-            List<User> listObj = mountList(rs);
+            List<Document> listObj = mountList(rs);
             return listObj;
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +192,7 @@ public class UserDataAccessObject extends DataAccessObject {
         }
     }
 	
-	public User find(User user) {
+	public Document find(Document document) {
 		try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -154,21 +203,16 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(" = ?");
             
             PreparedStatement ps = conn.prepareStatement(strBuilder.toString());
-            ps.setLong(1, user.getId());
+            ps.setLong(1, document.getId());
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-            	User obj = new User();
-                obj.setId(rs.getInt(1));
-                obj.setName(rs.getString(2));
-                obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
+            	Document obj = new Document();
+            	
+            	obj.setId(rs.getInt(1));
+                obj.setFile(rs.getString(2));
+                obj.setTemplateDocument(new DocumentTemplate(rs.getInt(3)));
+                obj.setResponsibleUser(new UserResponsible(rs.getInt(4)));
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));
@@ -190,21 +234,15 @@ public class UserDataAccessObject extends DataAccessObject {
         }
 	}
 	
-	public List<User> mountList(ResultSet rs) {
-		List<User> listObj = new ArrayList<User>();
+	public List<Document> mountList(ResultSet rs) {
+		List<Document> listObj = new ArrayList<Document>();
         try {
             while (rs.next()) {
-                User obj = new User();
-                obj.setId(rs.getInt(1));
-                obj.setName(rs.getString(2));
-                obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
+            	Document obj = new Document();
+            	obj.setId(rs.getInt(1));
+                obj.setFile(rs.getString(2));
+                obj.setTemplateDocument(new DocumentTemplate(rs.getInt(3)));
+                obj.setResponsibleUser(new UserResponsible(rs.getInt(4)));
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));

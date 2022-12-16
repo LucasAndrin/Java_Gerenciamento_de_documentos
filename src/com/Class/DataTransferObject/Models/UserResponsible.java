@@ -9,6 +9,18 @@ public class UserResponsible extends UserRecipient {
 	
 	private List<Document> sentDocuments;
 	
+	public UserResponsible() {
+		super(UserType.RESPONSIBLE);
+	}
+	
+	public UserResponsible(long id) {
+		super(id);
+	}
+	
+	public UserResponsible(UserType type) {
+		super(type);
+	}
+	
 	public UserResponsible(String name, String email) {
 		super(name, email, UserType.RESPONSIBLE);
 	}

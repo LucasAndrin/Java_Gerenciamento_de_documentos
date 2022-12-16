@@ -6,6 +6,14 @@ import com.Class.DataTransferObject.Enums.UserType;
 
 public class UserAdmin extends UserResponsible {
 
+	public UserAdmin() {
+		super(UserType.ADMIN);
+	}
+	
+	public UserAdmin(long id) {
+		super(id);
+	}
+	
 	public UserAdmin(String name, String email) {
 		super(name, email, UserType.ADMIN);
 	}

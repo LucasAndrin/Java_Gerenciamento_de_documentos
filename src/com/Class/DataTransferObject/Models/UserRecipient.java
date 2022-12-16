@@ -9,6 +9,18 @@ public class UserRecipient extends User {
 	
 	private List<Document> receivedDocuments;
 	
+	public UserRecipient() {
+		super(UserType.RECIPIENT);
+	}
+	
+	public UserRecipient(long id) {
+		super(id);
+	}
+	
+	public UserRecipient(UserType type) {
+		super(type);
+	}
+	
 	public UserRecipient(String name, String email) {
 		super(name, email, UserType.RECIPIENT);
 	}

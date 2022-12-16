@@ -1,11 +1,13 @@
 package com.Class.DataTransferObject.Models;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class Document {
 	
 	private long id;
+	
+	private String file;
 	
 	private DocumentTemplate templateDocument;
 	
@@ -13,11 +15,15 @@ public class Document {
 	
 	private UserResponsible responsibleUser;
 	
-	private LocalDate createdAt;
+	private Timestamp createdAt;
 	
-	private LocalDate updatedAt;
+	private Timestamp updatedAt;
 	
-	private LocalDate deletedAt;
+	private Timestamp deletedAt;
+	
+	public Document() {
+		
+	}
 	
 	public Document(DocumentTemplate templateDocument, List<UserRecipient> recipientUsers, UserResponsible responsibleUser) {
 		setTemplateDocument(templateDocument);
@@ -25,7 +31,7 @@ public class Document {
 		setResponsibleUser(responsibleUser);
 	}
 
-	public Document(long id, DocumentTemplate templateDocument, List<UserRecipient> recipientUsers, UserResponsible responsibleUser, LocalDate createdAt, LocalDate updatedAt, LocalDate deletedAt) {
+	public Document(long id, DocumentTemplate templateDocument, List<UserRecipient> recipientUsers, UserResponsible responsibleUser, Timestamp createdAt, Timestamp updatedAt, Timestamp deletedAt) {
 		setId(id);
 		setTemplateDocument(templateDocument);
 		setRecipientUsers(recipientUsers);
@@ -41,6 +47,14 @@ public class Document {
 
 	public void setId(long id) {
 		this.id = id;
+	}
+	
+	public String getFile() {
+		return file;
+	}
+	
+	public void setFile(String file) {
+		this.file = file;
 	}
 
 	public DocumentTemplate getTemplateDocument() {
@@ -67,27 +81,27 @@ public class Document {
 		this.responsibleUser = responsibleUser;
 	}
 
-	public LocalDate getCreatedAt() {
+	public Timestamp getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDate createdAt) {
+	public void setCreatedAt(Timestamp createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public LocalDate getUpdatedAt() {
+	public Timestamp getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public void setUpdatedAt(LocalDate updatedAt) {
+	public void setUpdatedAt(Timestamp updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 
-	public LocalDate getDeletedAt() {
+	public Timestamp getDeletedAt() {
 		return deletedAt;
 	}
 
-	public void setDeletedAt(LocalDate deletedAt) {
+	public void setDeletedAt(Timestamp deletedAt) {
 		this.deletedAt = deletedAt;
 	}
 

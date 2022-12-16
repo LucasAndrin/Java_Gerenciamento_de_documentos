@@ -28,6 +28,10 @@ public class User {
 		setId(id);
 	}
 	
+	public User(UserType type) {
+		setType(type);
+	}
+	
 	public User(String name, String email, UserType type) {
 		setName(name);
 		setEmail(email);

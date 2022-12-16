@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.Class.DataTransferObject.Enums.UserType;
+import com.Class.DataTransferObject.Models.DocumentTemplate;
 import com.Class.DataTransferObject.Models.User;
 import com.UtilClass.Connection.Conexao;
 
-public class UserDataAccessObject extends DataAccessObject {
+public class DocumentTemplateDataAccessObject extends DataAccessObject {
 	
-    protected String table = "users";
+protected String table = "templates";
     
     protected List<String> fillable = new ArrayList<String>(Arrays.asList(
     		"name",
-    		"email",
-    		"type"
+    		"descript",
+    		"created_by"
 	));
     
     protected List<String> fillableTimestamps = new ArrayList<String>(Arrays.asList(
@@ -37,7 +37,7 @@ public class UserDataAccessObject extends DataAccessObject {
 		return fillable;
 	}
 
-	public boolean create(User user) {
+	public boolean create(DocumentTemplate documentTemplate) {
     	try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -48,9 +48,9 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(" VALUES (?, ?, ?)");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setString(1, user.getName());
-            preparedStmt.setString(2, user.getEmail());
-            preparedStmt.setInt(3, user.getType().getValue());
+            preparedStmt.setString(1, documentTemplate.getName());
+            preparedStmt.setString(2, documentTemplate.getDescript());
+            preparedStmt.setLong(3, documentTemplate.getCreatedBy().getId());
             
             preparedStmt.executeUpdate();
             preparedStmt.close();
@@ -62,26 +62,26 @@ public class UserDataAccessObject extends DataAccessObject {
 		}
     }
 	
-	public boolean update(User user) {
+	public boolean update(DocumentTemplate documentTemplate) {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
 			
 			Timestamp now = new Timestamp(System.currentTimeMillis());
 			
-			user.setUpdatedAt(now);
+			documentTemplate.setUpdatedAt(now);
 			
             strBuilder.append("UPDATE ");
             strBuilder.append(getTable());
-            strBuilder.append(" SET name = ?, email = ?, type = ?, updated_at = now() WHERE ");
+            strBuilder.append(" SET name = ?, descript = ?, created_by = ?, updated_at = now() WHERE ");
             strBuilder.append(primaryKey);
             strBuilder.append("= ?");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setString(1, user.getName());
-            preparedStmt.setString(2, user.getEmail());
-            preparedStmt.setInt(3, user.getType().getValue());
-            preparedStmt.setLong(4, user.getId());
+            preparedStmt.setString(1, documentTemplate.getName());
+            preparedStmt.setString(2, documentTemplate.getDescript());
+            preparedStmt.setLong(3, documentTemplate.getCreatedBy().getId());
+            preparedStmt.setLong(4, documentTemplate.getId());
             
             preparedStmt.executeUpdate();
             preparedStmt.close();
@@ -93,7 +93,7 @@ public class UserDataAccessObject extends DataAccessObject {
 	    }
 	}
 	
-	public boolean delete(User user) {
+	public boolean delete(DocumentTemplate documentTemplate) {
 		try {
 			Connection conn = Conexao.connect();
 			StringBuilder strBuilder = new StringBuilder();
@@ -114,7 +114,7 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append("= ?");
             
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
-            preparedStmt.setLong(1, user.getId());
+            preparedStmt.setLong(1, documentTemplate.getId());
             
             preparedStmt.executeUpdate();
             preparedStmt.close();
@@ -126,7 +126,7 @@ public class UserDataAccessObject extends DataAccessObject {
 	    }
 	}
 	
-	public List<User> get() {
+	public List<DocumentTemplate> get() {
         try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -135,7 +135,7 @@ public class UserDataAccessObject extends DataAccessObject {
 
             PreparedStatement preparedStmt = conn.prepareStatement(strBuilder.toString());
             ResultSet rs = preparedStmt.executeQuery();
-            List<User> listObj = mountList(rs);
+            List<DocumentTemplate> listObj = mountList(rs);
             return listObj;
         } catch (Exception e) {
             e.printStackTrace();
@@ -143,7 +143,7 @@ public class UserDataAccessObject extends DataAccessObject {
         }
     }
 	
-	public User find(User user) {
+	public DocumentTemplate find(DocumentTemplate documentTemplate) {
 		try {
             Connection conn = Conexao.connect();
             StringBuilder strBuilder = new StringBuilder();
@@ -154,21 +154,16 @@ public class UserDataAccessObject extends DataAccessObject {
             strBuilder.append(" = ?");
             
             PreparedStatement ps = conn.prepareStatement(strBuilder.toString());
-            ps.setLong(1, user.getId());
+            ps.setLong(1, documentTemplate.getId());
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-            	User obj = new User();
+            	DocumentTemplate obj = new DocumentTemplate();
+            	
                 obj.setId(rs.getInt(1));
-                obj.setName(rs.getString(2));
-                obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
+                obj.setDescript(rs.getString(2));
+                obj.setName(rs.getString(3));
+                obj.setCreatedBy(new User(rs.getLong(4)));
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));
@@ -190,21 +185,15 @@ public class UserDataAccessObject extends DataAccessObject {
         }
 	}
 	
-	public List<User> mountList(ResultSet rs) {
-		List<User> listObj = new ArrayList<User>();
+	public List<DocumentTemplate> mountList(ResultSet rs) {
+		List<DocumentTemplate> listObj = new ArrayList<DocumentTemplate>();
         try {
             while (rs.next()) {
-                User obj = new User();
-                obj.setId(rs.getInt(1));
-                obj.setName(rs.getString(2));
-                obj.setEmail(rs.getString(3));
-                
-                for (UserType type : UserType.values()) {
-        			if (type.getValue() == rs.getInt(4)) {
-        				obj.setType(type);
-        			}
-        		}
-                
+            	DocumentTemplate obj = new DocumentTemplate();
+            	obj.setId(rs.getInt(1));
+                obj.setDescript(rs.getString(2));
+                obj.setName(rs.getString(3));
+                obj.setCreatedBy(new User(rs.getLong(4)));
                 obj.setCreatedAt(rs.getTimestamp(5));
                 obj.setUpdatedAt(rs.getTimestamp(6));
                 obj.setDeletedAt(rs.getTimestamp(7));

@@ -5,15 +5,14 @@ import java.sql.Connection;
 
 public class Conexao {
 
-	final static String NOME_DO_BANCO = "mvcsimplesjdbc";
-    public static Connection conectar() {
+	final static String NOME_DO_BANCO = "gerenciamentodocumentos";
+    public static Connection connect() {
     	try {
     		Class.forName("com.mysql.jdbc.Driver");
             String url = "jdbc:mysql://localhost/" + NOME_DO_BANCO;
             return DriverManager.getConnection(url,"root","");
         } catch (Exception e) {
-            //System.err.println("Erro: " + e.toString());
-            //e.printStackTrace();
+            e.printStackTrace();
             return null;
         }
     }
